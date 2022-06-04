@@ -1,0 +1,13 @@
+#!/bin/sh
+
+container=$(docker run -d --rm -v "$(pwd)":/app -p 8888:8888 ghcr.io/kensyc/jupyterlab:latest $@)
+
+logs=""
+while [[ -z $logs ]]; do
+    logs=$(docker logs $container 2>&1 | grep -e token -)
+done
+
+url=http://127.0.0.1:8888
+token=${logs##*$url}
+
+echo $url$token
