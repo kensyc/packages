@@ -1,0 +1,22 @@
+#!/bin/sh
+
+file=''
+for arg in "$@"; do
+    full_path=$(realpath $arg)
+    if [[ ! -z $full_path ]]; then
+        file=$full_path
+    fi
+done
+
+git_top_level=$(cd $(dirname $file) && git rev-parse --show-toplevel 2>/dev/null)
+
+if [[ ! -z $git_top_level ]]; then
+    mount="$git_top_level/"
+    file=${file/$mount/}
+else
+    mount=$(dirname $file)
+    file=$(basename $file)
+fi
+
+
+docker run -it --rm -v $mount:/workdir ghcr.io/kensyc/nvim:latest $file
