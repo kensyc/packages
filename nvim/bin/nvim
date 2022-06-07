@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 file=''
 for arg in "$@"; do
@@ -17,6 +17,5 @@ else
     mount=$(dirname $file)
     file=$(basename $file)
 fi
-
 
 docker run -it --rm -v $mount:/workdir ghcr.io/kensyc/nvim:latest $file

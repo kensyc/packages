@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 container=$(docker run -d --rm -v "$(pwd)":/app -p 8888:8888 ghcr.io/kensyc/jupyterlab:latest $@)
 
