@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#
+# If we're in a project folder, mount the root folder (determined if we're in
+# a git folder)
+# else just mount folder of the file
+#
+
 file=''
 for arg in "$@"; do
     full_path=$(realpath $arg)
@@ -18,4 +24,23 @@ else
     file=$(basename $file)
 fi
 
-docker run -it --rm -v $mount:/workdir ghcr.io/kensyc/nvim:latest $file
+#
+# Closing the nvim instance takes a second because the docker container needs to stop.
+# To make it instant, the nvim container is launched in a tmux session.
+#
+# When quitting nvim, the tmux session is closed (which is instant) and the
+# container will gracefully shutdown in the background
+#
+# If this workaround is unnecessary, the simple command is:
+# docker run -it --rm -v $mount:/workdir ghcr.io/kensyc/nvim:latest $file 
+#
+
+if [[ ! -p "/tmp/nvim-pipe" ]]; then
+    mkfifo /tmp/nvim-pipe
+fi
+
+nohup $(while true; do eval "$(cat /tmp/nvim-pipe)"; done) &
+
+tmux new-session -d -s "docker-nvim"
+tmux send-keys "docker run -it --rm -v /tmp/nvim-pipe:/tmp/nvim-pipe -v $mount:/workdir ghcr.io/kensyc/nvim:latest $file -c 'autocmd VimLeavePre * !echo \"tmux kill-session -t docker-nvim\" > /tmp/nvim-pipe'" C-m
+tmux attach -t "docker-nvim"

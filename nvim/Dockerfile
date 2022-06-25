@@ -1,4 +1,4 @@
-FROM debian:11-slim
+FROM debian:11-slim AS os
 
 RUN apt-get update && apt-get install -y \
     sudo \
@@ -40,6 +40,7 @@ ENV PATH=/home/nvim/.local/bin:/usr/local/go/bin:$PATH
 
 RUN pip install black
 
+FROM os as workspace
 RUN cd  && git clone https://github.com/kensyc/dotfiles && \
     mkdir ~/.config && \
     mv dotfiles/.config/nvim $HOME/.config/nvim && \
